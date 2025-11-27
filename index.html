@@ -72,12 +72,12 @@
         
         <div v-if="currentTab === 'plan'" class="space-y-6">
             
-            <div class="flex justify-between items-end">
+            <div class="flex justify-between items-end border-b pb-4 border-gray-200">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-800">本周鸡饭计划</h2>
-                    <p class="text-sm text-gray-500">数据来源：{{ isDataLoaded ? '云数据库' : '加载中...' }}</p>
+                    <h2 class="text-3xl font-light text-gray-800">📅 本周鸡饭计划</h2>
+                    <p class="text-sm text-gray-500 mt-1">数据来源：{{ isDataLoaded ? '云数据库' : '加载中...' }}</p>
                 </div>
-                <button @click="clearPlan" class="text-sm text-red-500 hover:underline">清空本周计划</button>
+                <button @click="clearPlan" class="text-sm text-red-500 hover:underline px-3 py-1 border border-red-500 rounded hover:bg-red-50 transition">清空本周计划</button>
             </div>
 
             <div class="overflow-x-auto hide-scrollbar">
@@ -85,16 +85,18 @@
                     class="grid gap-4 w-fit pb-4" 
                     :class="{
                         'grid-cols-7': isDesktop, 
-                        'grid-flow-col auto-cols-[80%] sm:auto-cols-[50%] md:auto-cols-min': !isDesktop
+                        // 修复：使用固定的 auto-cols 宽度避免内容撑宽
+                        'grid-flow-col auto-cols-[280px] sm:auto-cols-[320px]': !isDesktop 
                     }"
                 >
                     <div 
                         v-for="dayData in datedWeekDays" 
                         :key="dayData.dateStr" 
-                        class="bg-white rounded-xl shadow-md border border-gray-200 flex flex-col min-w-[280px] md:min-w-0 md:w-full h-[400px] transition duration-300"
+                        class="bg-white rounded-xl shadow-lg border flex flex-col min-w-[280px] md:min-w-0 md:w-full h-[450px] transition duration-300"
                         :class="{
-                            'border-2 border-primary shadow-lg': dayData.isToday,
-                            'opacity-60 grayscale': dayData.isPast && plan[dayData.dayName].every(m => m.status === '已制作')
+                            'border-2 border-primary shadow-xl': dayData.isToday,
+                            'border-gray-200': !dayData.isToday,
+                            'opacity-70 grayscale': dayData.isPast && plan[dayData.dayName].every(m => m.status === '已制作')
                         }"
                     >
                         <div class="p-3 bg-violet-50 rounded-t-xl border-b border-gray-100 font-bold text-center text-gray-700">
@@ -102,28 +104,34 @@
                             <div class="text-sm font-normal text-gray-500">{{ dayData.displayDate }}</div>
                         </div>
                         
-                        <div class="flex-1 p-2 overflow-y-auto space-y-2">
+                        <div class="flex-1 p-3 overflow-y-auto space-y-1">
+                            <button @click="openMealSelector(dayData.dayName)" class="w-full py-2 mb-2 border-2 border-dashed border-primary rounded-lg text-primary hover:border-primary-dark transition text-sm font-medium">
+                                + 添加菜品
+                            </button>
                             <div v-for="(meal, mIndex) in plan[dayData.dayName]" :key="mIndex" 
-                                class="group relative bg-white border border-gray-200 rounded-lg p-2 shadow-sm hover:shadow-md transition"
-                                :class="{'bg-violet-100 border-violet-400': meal.status === '已制作'}"
+                                class="group relative rounded-lg p-2 transition border-l-4"
+                                :class="{
+                                    'bg-green-50 border-green-500': meal.status === '已制作', 
+                                    'bg-white border-gray-200 hover:bg-gray-50': meal.status === '未制作'
+                                }"
                             >
                                 <div class="flex justify-between items-start">
-                                    <button @click="viewRecipeDetail(meal.id)" class="font-medium text-gray-800 text-left hover:text-primary underline decoration-dashed decoration-gray-400">
+                                    <button @click="viewRecipeDetail(meal.id)" class="font-semibold text-gray-800 text-left hover:text-primary transition text-base">
                                         {{ getRecipeName(meal.id) }}
                                     </button>
-                                    <button @click="removeFromPlan(dayData.dayName, mIndex)" class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100">×</button>
+                                    <button @click="removeFromPlan(dayData.dayName, mIndex)" class="text-gray-400 hover:text-red-500 opacity-80 transition text-lg leading-none">×</button>
                                 </div>
 
-                                <div class="mt-2 flex items-center justify-between">
-                                    <span :class="{'text-primary-dark font-semibold': meal.status === '已制作', 'text-gray-500': meal.status === '未制作'}" class="text-xs">
-                                        状态: {{ meal.status }}
+                                <div class="mt-1 flex items-center justify-between">
+                                    <span :class="{'text-green-600 font-semibold': meal.status === '已制作', 'text-gray-500': meal.status === '未制作'}" class="text-xs">
+                                        {{ meal.status }}
                                     </span>
                                     <button 
                                         @click="toggleRecipeStatus(dayData.dayName, mIndex)" 
                                         :class="{'bg-primary hover:bg-primary-dark': meal.status === '未制作', 'bg-red-500 hover:bg-red-600': meal.status === '已制作'}"
-                                        class="text-white text-xs px-2 py-1 rounded transition"
+                                        class="text-white text-xs px-2 py-0.5 rounded transition"
                                     >
-                                        {{ meal.status === '未制作' ? '标记为已制作' : '标记为未制作' }}
+                                        {{ meal.status === '未制作' ? '制作并扣库存' : '取消标记' }}
                                     </button>
                                 </div>
 
@@ -131,13 +139,10 @@
                                     {{ getRecipeIngredientsStr(meal.id) }}
                                 </div>
                             </div>
-                            
-                            <button @click="openMealSelector(dayData.dayName)" class="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition text-sm">
-                                + 添加
-                            </button>
+
                         </div>
 
-                        <div class="p-2 border-t border-gray-100">
+                        <div class="p-3 border-t border-gray-100">
                             <button @click="viewDayDetail(dayData.dayName)" class="w-full text-xs text-center text-blue-500 hover:text-blue-700">
                                 查看{{ dayData.dayName }}消耗汇总
                             </button>
@@ -154,11 +159,11 @@
                     </h3>
                     <div v-if="shoppingList.length > 0" class="space-y-2">
                         <div v-for="item in shoppingList" :key="item.name" 
-                             :class="{
-                                'bg-red-50 text-red-700 border-l-4 border-red-400': !item.optional,
-                                'bg-yellow-50 text-yellow-700 border-l-4 border-yellow-400': item.optional
-                             }"
-                             class="flex justify-between items-center p-2 rounded"
+                                :class="{
+                                    'bg-red-50 text-red-700 border-l-4 border-red-400': !item.optional,
+                                    'bg-yellow-50 text-yellow-700 border-l-4 border-yellow-400': item.optional
+                                }"
+                                class="flex justify-between items-center p-2 rounded"
                         >
                             <span>{{ item.name }} 
                                 <span v-if="item.optional" class="text-xs font-normal">(可选)</span>
@@ -237,17 +242,32 @@
                 <table class="w-full min-w-[700px] text-left border-collapse">
                     <thead>
                         <tr class="text-gray-500 border-b">
-                            <th class="py-3 px-2">类别</th>
-                            <th class="py-3 px-2">食材名称</th>
+                            <th class="py-3 px-2 cursor-pointer hover:text-primary" @click="changeSort('category')">
+                                类别 
+                                <span v-if="sortKey === 'category'" class="text-primary ml-1">
+                                    {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                                </span>
+                            </th>
+                            <th class="py-3 px-2 cursor-pointer hover:text-primary" @click="changeSort('name')">
+                                食材名称 
+                                <span v-if="sortKey === 'name'" class="text-primary ml-1">
+                                    {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                                </span>
+                            </th>
                             <th class="py-3 px-2">库存量</th>
-                            <th class="py-3 px-2">入库日期</th>
+                            <th class="py-3 px-2 cursor-pointer hover:text-primary" @click="changeSort('entryDate')">
+                                入库日期 
+                                <span v-if="sortKey === 'entryDate'" class="text-primary ml-1">
+                                    {{ sortDirection === 'asc' ? '▲' : '▼' }}
+                                </span>
+                            </th>
                             <th class="py-3 px-2">保质期 (天)</th>
                             <th class="py-3 px-2">过期状态</th>
                             <th class="py-3 px-2 text-right">操作</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(item, index) in inventory" :key="index" 
+                        <tr v-for="(item, index) in sortedInventory" :key="item.name + item.entryDate" 
                             class="border-b last:border-0 hover:bg-gray-50 transition"
                             :class="checkExpirationStatus(item)"
                         >
@@ -594,6 +614,10 @@
             });
             const recipeStats = ref({}); 
             const isDataLoaded = ref(false); 
+            
+            // 【新增】库存排序状态
+            const sortKey = ref('category'); 
+            const sortDirection = ref('asc'); 
 
             // UI控制状态 
             const showSelector = ref(false);
@@ -712,6 +736,45 @@
                     newInvShelfLife.value = '';
                 }
                 newInvName.value = '';
+            });
+            
+            // --- 库存排序逻辑 ---
+            const changeSort = (key) => {
+                if (sortKey.value === key) {
+                    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortKey.value = key;
+                    sortDirection.value = 'asc';
+                }
+            };
+
+            const sortedInventory = computed(() => {
+                const list = [...inventory.value];
+                const key = sortKey.value;
+                const direction = sortDirection.value === 'asc' ? 1 : -1;
+
+                list.sort((a, b) => {
+                    let valA = a[key] || '';
+                    let valB = b[key] || '';
+
+                    // 针对字符串进行排序 (如 category, name, entryDate)
+                    if (typeof valA === 'string' && typeof valB === 'string') {
+                        // date 字段需要特殊处理确保正确比较
+                        if (key === 'entryDate') {
+                            return direction * valA.localeCompare(valB);
+                        }
+                        return direction * valA.localeCompare(valB, 'zh-CN');
+                    } 
+                    
+                    // 针对数字进行排序 (如 qty, shelfLife)
+                    if (typeof valA === 'number' && typeof valB === 'number') {
+                        return direction * (valA - valB);
+                    }
+
+                    return direction * String(valA).localeCompare(String(valB), 'zh-CN');
+                });
+
+                return list;
             });
 
             // --- 日期计算和周计划高亮逻辑 ---
@@ -865,6 +928,7 @@
                     const copiedRecipe = JSON.parse(JSON.stringify(recipe));
                     if (typeof copiedRecipe.category === 'undefined') copiedRecipe.category = ''; 
                     copiedRecipe.ingredients.forEach(ing => {
+                        // 【修改点 2.1】: 如果可选字段丢失，默认为必须 (false)
                         if (typeof ing.optional === 'undefined') ing.optional = false;
                     });
                     editingRecipe.value = copiedRecipe;
@@ -879,6 +943,7 @@
                 showRecipeEditor.value = true;
             };
 
+            // 【修改点 2.2】: 新增食材默认为必须 (optional: false)
             const addIngToEdit = () => editingRecipe.value.ingredients.push({name: '', qty: 1, unit: '份', optional: false});
             const removeIngFromEdit = (idx) => editingRecipe.value.ingredients.splice(idx, 1);
             const closeRecipeEditor = () => showRecipeEditor.value = false;
@@ -898,6 +963,7 @@
                 });
                 
                 finalIngredients.forEach(ing => {
+                    // 确保所有食材都有 optional 字段
                     if (typeof ing.optional === 'undefined') ing.optional = false;
                 });
                 
@@ -965,6 +1031,7 @@
                 if (!recipe) return alert('菜谱不存在！');
 
                 if (meal.status === '未制作') {
+                    // A. 标记为【已制作】 (DEDUCTION / 扣除)
                     meal.status = '已制作';
                     let deductedIngredients = [];
 
@@ -973,7 +1040,6 @@
                             const itemIndex = inventory.value.findIndex(i => i.name === ing.name);
                             if (itemIndex !== -1) {
                                 const inventoryItem = inventory.value[itemIndex];
-                                // 确保 qty 是数字
                                 const currentQty = parseFloat(inventoryItem.qty) || 0;
                                 
                                 const deductedQty = Math.min(currentQty, ing.qty);
@@ -992,8 +1058,31 @@
                     }
 
                 } else {
-                    if (confirm('警告：将状态更改回“未制作”不会自动回滚库存扣除。确定继续吗？')) {
+                    // B. 标记为【未制作】 (ROLLBACK / 回滚)
+                    if (confirm('警告：将状态更改回“未制作”将会把之前扣除的食材数量【加回】库存。确定继续吗？')) {
+                         
+                         let rollbackedIngredients = [];
+
+                         recipe.ingredients.forEach(ing => {
+                            if (!ing.optional) { // 仅回滚非可选食材
+                                const itemIndex = inventory.value.findIndex(i => i.name === ing.name);
+                                if (itemIndex !== -1) {
+                                    const inventoryItem = inventory.value[itemIndex];
+                                    const currentQty = parseFloat(inventoryItem.qty) || 0;
+                                    
+                                    inventoryItem.qty = currentQty + ing.qty; // 加回所需数量
+                                    
+                                    rollbackedIngredients.push(`${ing.name}: ${ing.qty}${ing.unit}`);
+                                }
+                            }
+                         });
+
                          meal.status = '未制作';
+                         if (rollbackedIngredients.length > 0) {
+                             alert(`已将 "${recipe.name}" 标记为【未制作】，并回滚以下库存：\n${rollbackedIngredients.join('\n')}`);
+                         } else {
+                             alert(`已将 "${recipe.name}" 标记为【未制作】，无食材需要回滚。`);
+                         }
                     }
                 }
             };
@@ -1090,6 +1179,7 @@
                 CATEGORIES_MAP, CATEGORY_COLORS_MAP, weekDays, 
                 currentTab, inventory, recipes, plan, recipeStats,
                 isDataLoaded, isDesktop,
+                sortKey, sortDirection, sortedInventory, changeSort, // 暴露排序功能
                 showSelector, selectedDay, searchQuery,
                 showRecipeEditor, editingRecipe,
                 newInvCategory, newInvName, newInvQty, newInvUnit, newInvShelfLife,
