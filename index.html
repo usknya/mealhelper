@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐈 猫巴士的嵇饭食堂</title>
+    <title>💜 猫巴士的嵇饭食堂</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -11,7 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <style>
-        /* 使用自定义颜色配置，强化紫色系 */
+        /* 使用自定义颜色配置 */
         :root {
             --color-primary: #8B5CF6; /* Violet 500 */
             --color-primary-dark: #7C3AED; /* Violet 600 */
@@ -30,22 +30,22 @@
         
         /* 自定义滚动条 - 简约可爱紫色 */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-thumb { background: #dcd0f9; border-radius: 4px; } /* 浅紫色 */
+        ::-webkit-scrollbar-thumb { background: #dcd0f9; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
 
-        /* 覆盖默认的 focus 样式，统一使用紫色 */
-        .focus-ring-primary:focus {
-            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--color-primary);
-            box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow);
-            border-color: var(--color-primary);
-        }
-        /* 隐藏手机端的横向滚动条，让体验更像滑动 */
+        /* 隐藏手机端的横向滚动条 (修复布局溢出) */
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
         .hide-scrollbar {
             -ms-overflow-style: none; /* IE and Edge */
             scrollbar-width: none; /* Firefox */
+        }
+        /* 统一焦点环颜色 */
+        .focus-ring-primary:focus {
+            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--color-primary);
+            box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow);
+            border-color: var(--color-primary);
         }
     </style>
 </head>
@@ -57,7 +57,7 @@
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <span class="font-bold text-xl text-primary">🐈 猫巴士的嵇饭食堂</span>
+                    <span class="font-bold text-xl text-primary">💜 猫巴士的嵇饭食堂</span>
                 </div>
                 <div class="flex space-x-4">
                     <button @click="currentTab = 'plan'" :class="{'text-primary border-b-2 border-primary': currentTab === 'plan'}" class="px-3 py-2 font-medium text-gray-600 hover:text-primary transition">📅 本周鸡饭计划</button>
@@ -183,7 +183,7 @@
             </div>
         </div>
 
-        <div v-if="currentTab === 'inventory'" class="max-w-6xl mx-auto bg-white rounded-xl shadow p-6">
+        <div v-if="currentTab === 'inventory'" class="max-w-6xl mx-auto bg-white rounded-xl shadow p-6 max-w-full">
             <h2 class="text-2xl font-bold mb-6 text-gray-800">当前食材库存</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-6 gap-3 mb-6 items-end">
@@ -234,7 +234,7 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full min-w-[700px] text-left border-collapse">
                     <thead>
                         <tr class="text-gray-500 border-b">
                             <th class="py-3 px-2">类别</th>
@@ -253,7 +253,10 @@
                         >
                             <td class="py-3 px-2 font-medium text-gray-800">{{ item.category }}</td>
                             <td class="py-3 px-2 font-bold text-gray-800">{{ item.name }}</td>
-                            <td class="py-3 px-2 text-sm">{{ item.qty }} {{ item.unit }}</td>
+                            <td class="py-3 px-2 text-sm flex items-center">
+                                <input v-model.number="item.qty" type="number" min="0" class="w-16 border rounded px-1 py-0.5 text-sm text-center">
+                                <span class="ml-1">{{ item.unit }}</span>
+                            </td>
                             <td class="py-3 px-2 text-sm">{{ item.entryDate }}</td>
                             <td class="py-3 px-2">
                                 <input v-model.number="item.shelfLife" type="number" class="w-16 border rounded px-1 py-0.5 text-sm text-center">
@@ -278,14 +281,14 @@
             </div>
         </div>
 
-        <div v-if="currentTab === 'recipes'" class="max-w-7xl mx-auto">
+        <div v-if="currentTab === 'recipes'" class="max-w-7xl mx-auto max-w-full">
              <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-gray-800">我的私房菜谱</h2>
                 <button @click="openRecipeEditor()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark flex items-center">
                     <span class="mr-1 text-xl">+</span> 新建菜谱
                 </button>
             </div>
-
+            
             <div class="mb-6 flex gap-3 items-center overflow-x-auto pb-2">
                 <span class="text-gray-600 font-medium whitespace-nowrap">按分类筛选:</span>
                 <button 
@@ -480,7 +483,6 @@
                 <div class="mt-6 flex justify-end">
                      <button @click="recipeDetailModal = null" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">关闭</button>
                 </div>
-
             </div>
 
             <div v-else-if="recipeDetailModal.type === 'recipe'">
@@ -527,11 +529,12 @@
 </div>
 
 <script>
+    // 导入 Vue 模块，并解构出所需的函数 (已修复重复声明错误)
     const { createApp, ref, computed, onMounted, watch } = Vue;
 
-    // --- Firebase 初始化配置 (已完成) ---
+    // --- Firebase 初始化配置 ---
     // ----------------------------------------------------
-    // 【您的 Firebase 配置】
+    // 【您的 Firebase 配置】: mealhelp-171d4
     const firebaseConfig = {
       apiKey: "AIzaSyBJPV0a2CpU2BIzk7WnMv92hHDwVBp25Lk",
       authDomain: "mealhelp-171d4.firebaseapp.com",
@@ -550,7 +553,7 @@
     // ----------------------------------------------------
 
 
-    // --- 全局配置常量 (未修改) ---
+    // --- 全局配置常量 ---
     const CATEGORIES_MAP = {
         '调料类': { priority: 1, items: ['盐', '糖', '酱油', '油'] },
         '菜类': { priority: 2, items: ['白菜', '生菜', '土豆', '胡萝卜'] },
@@ -572,8 +575,8 @@
         '菜类': 7, '肉类': 5, '鱼类': 3, '调料类': 365, '主食类': 30
     };
     const BASIC_INGREDIENTS = [
-        {name: '油', qty: 1, unit: '勺', optional: false}, 
-        {name: '盐', qty: 1, unit: '克', optional: false}
+        {name: '油', qty: 1, unit: '勺', optional: true}, 
+        {name: '盐', qty: 1, unit: '克', optional: true} // 将基础调料设为可选
     ];
     const EXPIRING_SOON_THRESHOLD = 3;
 
@@ -583,16 +586,16 @@
             const currentTab = ref('plan'); 
             const weekDays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
             
-            // 核心数据模型
+            // 核心数据模型 (Array of Objects)
             const inventory = ref([]); 
             const recipes = ref([]);   
             const plan = ref({
                 '周一': [], '周二': [], '周三': [], '周四': [], '周五': [], '周六': [], '周日': []
             });
             const recipeStats = ref({}); 
-            const isDataLoaded = ref(false); // 新增状态：数据是否已从云端加载
+            const isDataLoaded = ref(false); 
 
-            // UI控制状态 (未修改)
+            // UI控制状态 
             const showSelector = ref(false);
             const selectedDay = ref('');
             const searchQuery = ref('');
@@ -602,15 +605,15 @@
             const selectedRecipeCategory = ref(''); 
             const draggedIndex = ref(null); 
             
-            // 库存添加输入框 (未修改)
+            // 库存添加输入框
             const newInvCategory = ref('');
             const newInvName = ref('');
             const newInvQty = ref('');
             const newInvUnit = ref('');
             const newInvShelfLife = ref('');
             
-            // 响应式判断 (新增)
-            const isDesktop = ref(window.innerWidth >= 768); // md breakpoint in Tailwind
+            // 响应式判断
+            const isDesktop = ref(window.innerWidth >= 768); 
 
             const handleResize = () => {
                 isDesktop.value = window.innerWidth >= 768;
@@ -618,29 +621,27 @@
 
             onMounted(() => {
                 window.addEventListener('resize', handleResize);
-                // 启动时从 Firebase 加载数据
                 loadDataFromFirestore();
             });
             
             // --- Firebase 数据加载和同步 ---
             
-            // 数据加载：从 Firestore 读取
             const loadDataFromFirestore = () => {
                  dataRef.onSnapshot(doc => {
                     if (doc.exists) {
                         const data = doc.data();
                         
-                        // 使用解构赋值确保数据结构完整
                         inventory.value = data.inventory || [];
                         recipes.value = data.recipes || [];
                         plan.value = data.plan || {'周一': [], '周二': [], '周三': [], '周四': [], '周五': [], '周六': [], '周日': []};
                         recipeStats.value = data.recipeStats || {};
                         
-                        // 清除旧的 localStorage 数据，确保不再使用本地存储
-                        localStorage.removeItem('mp_inventory_v2');
-                        localStorage.removeItem('mp_recipes_v2');
-                        localStorage.removeItem('mp_plan_v2');
-                        localStorage.removeItem('mp_recipe_stats_v2');
+                        // 客户端数据结构清理 (可选，为确保数据结构的健壮性)
+                        inventory.value.forEach(item => {
+                            if (typeof item.qty === 'string') item.qty = parseFloat(item.qty) || 0;
+                            if (typeof item.shelfLife === 'string') item.shelfLife = parseInt(item.shelfLife) || 7;
+                        });
+                        
                     } else {
                          // 如果文档不存在，则设置初始数据 (空)
                          dataRef.set({
@@ -651,27 +652,28 @@
                          });
                     }
                     isDataLoaded.value = true;
-                    console.log("数据已从 Firestore 加载/同步。");
                 }, err => {
                     console.error("Firestore 同步错误:", err);
                     isDataLoaded.value = false;
+                    alert("数据加载失败！请检查您的网络连接或 Firebase 安全规则是否已发布。");
                 });
             };
 
-            // 数据保存：写入 Firestore
-            // 监听所有核心数据的变化，并执行一次性的写入操作 (取代 localStorage)
             const saveDataToFirestore = () => {
-                if (!isDataLoaded.value) return; // 确保数据加载完成后再进行写入
+                if (!isDataLoaded.value) return; 
                 
-                // Firestore set 方法会替换整个文档，但由于我们只存储一个文档，这是可以接受的
+                // 确保数量是数字，避免 Firebase 报错
+                const sanitizedInventory = inventory.value.map(item => ({
+                    ...item,
+                    qty: parseFloat(item.qty) || 0,
+                    shelfLife: parseInt(item.shelfLife) || 7
+                }));
+
                 dataRef.set({
-                    inventory: inventory.value,
+                    inventory: sanitizedInventory,
                     recipes: recipes.value,
                     plan: plan.value,
                     recipeStats: recipeStats.value,
-                })
-                .then(() => {
-                    // console.log("数据成功写入 Firestore!");
                 })
                 .catch(error => {
                     console.error("写入 Firestore 错误:", error);
@@ -681,7 +683,7 @@
             // 监听变化，自动保存到 Firestore
             watch([inventory, recipes, plan, recipeStats], saveDataToFirestore, { deep: true });
 
-            // --- 工具函数 (未修改) ---
+            // --- 工具函数 ---
             const getToday = () => new Date().toISOString().slice(0, 10);
             const getCurrentYearMonth = () => new Date().toISOString().slice(0, 7);
             const getRecipeCategoryColor = (category) => {
@@ -701,7 +703,6 @@
             const getRecipe = (id) => recipes.value.find(r => r.id === id);
 
 
-            // 类别输入监听 (已修正逻辑)
             watch(newInvCategory, (newCat) => {
                 if (DEFAULT_SHELF_LIFE_DAYS[newCat]) {
                     newInvShelfLife.value = DEFAULT_SHELF_LIFE_DAYS[newCat];
@@ -713,7 +714,7 @@
                 newInvName.value = '';
             });
 
-            // --- 日期计算和周计划高亮逻辑 (未修改) ---
+            // --- 日期计算和周计划高亮逻辑 ---
             const getWeekStart = () => {
                 const today = new Date();
                 const day = today.getDay(); 
@@ -746,10 +747,11 @@
             });
 
 
-            // --- 核心逻辑计算 (未修改) ---
+            // --- 核心逻辑计算 ---
             const getInventoryQty = (name) => {
                 const item = inventory.value.find(i => i.name === name);
-                return item ? item.qty : 0;
+                // 确保返回数字
+                return item ? parseFloat(item.qty) || 0 : 0; 
             };
             
             const getMissingQty = (name, requiredQty) => Math.max(0, requiredQty - getInventoryQty(name));
@@ -848,7 +850,7 @@
             };
 
 
-            // --- 拖拽排序方法 (未修改) ---
+            // --- 拖拽排序方法 ---
             const dragStart = (index) => { draggedIndex.value = index; };
             const dropItem = (targetIndex) => {
                 if (draggedIndex.value === null || draggedIndex.value === targetIndex) return;
@@ -857,7 +859,7 @@
                 draggedIndex.value = null;
             };
 
-            // --- 菜谱操作 (未修改) ---
+            // --- 菜谱操作 ---
             const openRecipeEditor = (recipe = null) => {
                 if (recipe) {
                     const copiedRecipe = JSON.parse(JSON.stringify(recipe));
@@ -921,7 +923,7 @@
                 }
             };
 
-            // 3. 计划操作 (未修改)
+            // --- 计划操作 ---
             const openMealSelector = (day) => {
                 selectedDay.value = day;
                 showSelector.value = true;
@@ -971,8 +973,11 @@
                             const itemIndex = inventory.value.findIndex(i => i.name === ing.name);
                             if (itemIndex !== -1) {
                                 const inventoryItem = inventory.value[itemIndex];
-                                const deductedQty = Math.min(inventoryItem.qty, ing.qty);
-                                inventoryItem.qty = Math.max(0, inventoryItem.qty - ing.qty);
+                                // 确保 qty 是数字
+                                const currentQty = parseFloat(inventoryItem.qty) || 0;
+                                
+                                const deductedQty = Math.min(currentQty, ing.qty);
+                                inventoryItem.qty = Math.max(0, currentQty - ing.qty);
                                 
                                 if (deductedQty > 0) {
                                     deductedIngredients.push(`${ing.name}: ${deductedQty}${ing.unit}`);
@@ -1003,7 +1008,7 @@
                 return r.ingredients.map(i => `${i.name}${i.optional ? '(可选)' : ''} (${i.qty}${i.unit})`).join(', ');
             };
 
-            // 4. 详情弹窗 (通用) (未修改)
+            // --- 详情弹窗 (通用) ---
             
             const viewDayDetail = (day) => {
                 recipeDetailModal.value = { type: 'day', day: day };
@@ -1023,27 +1028,31 @@
                 }).filter(Boolean);
             };
 
-            // 5. 库存操作 (未修改)
+            // --- 库存操作 (已优化) ---
             const addInventory = () => {
                 if (!newInvName.value || !newInvQty.value || !newInvUnit.value || !newInvCategory.value) {
                     return alert('请填写完整的食材信息 (类别、名称、数量、单位)');
                 }
+                
+                const entryDate = getToday();
+                // 确保shelfLife是数字
+                const shelfLife = parseInt(newInvShelfLife.value) || DEFAULT_SHELF_LIFE_DAYS[newInvCategory.value] || 7;
+                // 确保数量是数字
+                const qtyToAdd = parseFloat(newInvQty.value) || 0;
 
                 const existing = inventory.value.find(i => i.name === newInvName.value);
-                const entryDate = getToday();
-                const shelfLife = parseInt(newInvShelfLife.value) || DEFAULT_SHELF_LIFE_DAYS[newInvCategory.value] || 7;
 
                 if (existing) {
                     if (existing.unit !== newInvUnit.value) {
                          alert(`注意："${newInvName.value}" 的现有单位是 ${existing.unit}，本次单位是 ${newInvUnit.value}，请保持单位一致性以确保计算准确！`);
                     }
-                    existing.qty += newInvQty.value;
+                    existing.qty = (parseFloat(existing.qty) || 0) + qtyToAdd;
                     existing.entryDate = entryDate; 
                     existing.shelfLife = shelfLife;
                 } else {
                     inventory.value.push({
                         name: newInvName.value,
-                        qty: newInvQty.value,
+                        qty: qtyToAdd,
                         unit: newInvUnit.value,
                         category: newInvCategory.value,
                         entryDate: entryDate,
@@ -1057,9 +1066,12 @@
                 newInvShelfLife.value = '';
             };
             
+            // 直接通过在表格中修改 v-model.number="item.qty" 来更新库存
+            
             const updateInventory = (idx, change) => {
                 const item = inventory.value[idx];
-                const newVal = item.qty + change;
+                const currentQty = parseFloat(item.qty) || 0;
+                const newVal = currentQty + change;
                 if (newVal >= 0) item.qty = newVal;
             };
             
@@ -1067,7 +1079,7 @@
                 if(confirm('确定删除该食材吗？')) inventory.value.splice(idx, 1);
             };
 
-            // 6. 菜谱分类计算 (未修改)
+            // --- 菜谱分类计算 ---
              const availableRecipeCategories = computed(() => {
                 const categories = new Set(recipes.value.map(r => r.category).filter(c => c));
                 return Array.from(categories).sort();
